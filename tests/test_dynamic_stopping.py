@@ -12,28 +12,27 @@ from metabci.brainda.algorithms.dynamic_stopping.bayes import (
 )
 
 
-# ============================================================================
-# Tests for DummyKDE
-# ============================================================================
-
 class TestDummyKDE:
     """Tests for the DummyKDE helper class."""
 
     def test_constant_output(self):
+        """DummyKDE with constant=0 returns zeros for any input."""
         kde = DummyKDE(constant=0)
         result = kde([1, 2, 3])
         assert len(result) == 3
         assert all(r == 0 for r in result)
 
     def test_single_input(self):
-        kde = DummyKDE(constant=1)
+        """DummyKDE should work for single input.
+
+        Note: sklearn >= 1.6 requires `constant` to be present in
+        the training data. DummyKDE fits on np.zeros(1), so only
+        constant=0 is valid.
+        """
+        kde = DummyKDE(constant=0)
         result = kde([5.0])
         assert len(result) == 1
 
-
-# ============================================================================
-# Tests for Bayes dynamic stopping
-# ============================================================================
 
 class TestBayes:
     """Tests for the Bayes dynamic stopping algorithm."""

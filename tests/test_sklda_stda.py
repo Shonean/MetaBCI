@@ -54,14 +54,18 @@ class TestSKLDA:
 
 
 class TestSTDA:
-    """Tests for Spatial-Temporal Discriminant Analysis."""
+    """Tests for Spatial-Temporal Discriminant Analysis.
+
+    Note: STDA inherits from TransformerMixin (and ClassifierMixin),
+    but does NOT implement predict(). STDA.transform() returns
+    decision values (1D array), not class labels.
+    """
 
     def test_fit_returns_self(self):
         rng = np.random.RandomState(42)
         n_trials, n_ch, n_samples = 40, 8, 50
         X = rng.randn(n_trials, n_ch, n_samples)
-        # Add class-separable component
-        X[:20, :4, 20:40] += 2.0  # target class
+        X[:20, :4, 20:40] += 2.0
         y = np.array([0] * 20 + [1] * 20)
         stda = STDA()
         result = stda.fit(X, y)
@@ -76,11 +80,15 @@ class TestSTDA:
         stda = STDA()
         stda.fit(X, y)
         features = stda.transform(X)
-        # Features should have fewer dimensions than original
         assert features.shape[0] == n_trials
         assert features.ndim <= 2
 
     def test_predict_shape(self):
+        """STDA.transform() returns decision values.
+
+        We verify shape and finiteness of decision values.
+        Classification can be done by thresholding (e.g., np.sign).
+        """
         rng = np.random.RandomState(42)
         n_trials, n_ch, n_samples = 40, 8, 50
         X = rng.randn(n_trials, n_ch, n_samples)
@@ -88,5 +96,6 @@ class TestSTDA:
         y = np.array([0] * 20 + [1] * 20)
         stda = STDA()
         stda.fit(X, y)
-        labels = stda.predict(X)
-        assert labels.shape == y.shape
+        decision_values = stda.transform(X)
+        assert decision_values.shape[0] == n_trials
+        assert np.all(np.isfinite(decision_values))
